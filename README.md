@@ -52,7 +52,7 @@ hit the same dead end.
 ## Install
 
 ```
-git clone https://github.com/<your-username>/chuwi-hi10x1-camera-drivers.git
+git clone https://github.com/4WaYDp/chuwi-hi10x1-camera-drivers.git
 cd chuwi-hi10x1-camera-drivers
 sudo ./install.sh
 sudo reboot
