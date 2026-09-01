@@ -926,7 +926,13 @@ static const struct gc5035_mode gc5035_modes[] = {
 		.max_fps = 30,
 		.exp_def = 0x258,
 		.hts_def = 2920,
-		.vts_def = 2008,
+		/*
+		 * Bumped from stock 2008 (~19.4fps) to trade default frame
+		 * rate for more exposure headroom in low light, at the
+		 * user's request after evening/WhatsApp low-light testing
+		 * showed AGC pegged at max exposure+gain. ~13.9fps default.
+		 */
+		.vts_def = 2800,
 		.reg_list = gc5035_2592x1944_regs,
 		.num_regs = ARRAY_SIZE(gc5035_2592x1944_regs),
 	},
