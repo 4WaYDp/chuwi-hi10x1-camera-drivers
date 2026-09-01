@@ -1539,6 +1539,20 @@ static int gc5035_set_fmt(struct v4l2_subdev *sd,
 		__v4l2_ctrl_modify_range(gc5035->vblank, vblank_def,
 					 GC5035_VTS_MAX - mode->height,
 					 1, vblank_def);
+		/*
+		 * modify_range() alone only changes the vblank control's
+		 * range/default - it does NOT invoke gc5035_set_ctrl(), so
+		 * the exposure control's max (recomputed as a side effect of
+		 * a real VBLANK s_ctrl, see gc5035_set_ctrl()) is left stuck
+		 * at whatever mode was probed last. libcamera queries the
+		 * exposure range right after format negotiation but before
+		 * streaming starts, so a later fixup at stream-on time (see
+		 * __gc5035_start_stream()) is too late - libcamera has
+		 * already cached the stale max. Force the value (not just
+		 * the range) here, for every probed mode, so the exposure
+		 * max is always correct by the time libcamera reads it.
+		 */
+		__v4l2_ctrl_s_ctrl(gc5035->vblank, vblank_def);
 	}
 	mutex_unlock(&gc5035->mutex);
 
