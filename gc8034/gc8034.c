@@ -578,13 +578,8 @@ static int gc8034_set_fmt(struct v4l2_subdev *sd,
 	s64 h_blank, vblank_def;
 	/* Single supported mode - see graph_settings XML note above. */
 	const u32 width = 3280, height = 2464;
-	/*
-	 * Bumped from stock 2560 (~29.4fps) to trade default frame rate
-	 * for more exposure headroom in low light, at the user's request
-	 * after evening/WhatsApp low-light testing. ~14fps default. Must
-	 * match the vts_def in gc8034_initialize_controls() below.
-	 */
-	const u32 hts_def = 3600, vts_def = 5384;
+	/* Must match the vts_def in gc8034_initialize_controls() below. */
+	const u32 hts_def = 3600, vts_def = 2560;
 
 	fmt->format.code = MEDIA_BUS_FMT_SGRBG10_1X10;
 	fmt->format.width = width;
@@ -961,7 +956,7 @@ static int gc8034_initialize_controls(struct gc8034 *gc8034)
 	u64 exposure_max;
 	const u32 width = 3280, height = 2464;
 	/* Must match the vts_def in gc8034_get/set_fmt() above. */
-	const u32 hts_def = 3600, vts_def = 5384, exp_def = 0x400;
+	const u32 hts_def = 3600, vts_def = 2560, exp_def = 0x400;
 	int ret;
 
 	handler = &gc8034->ctrl_handler;
