@@ -1642,6 +1642,20 @@ static int __gc5035_start_stream(struct gc5035 *gc5035)
 	if (ret)
 		return ret;
 
+	/*
+	 * libcamera's format-discovery pass calls set_fmt(ACTIVE) once per
+	 * supported mode to inspect each one's sensor info, which (via
+	 * gc5035_set_fmt()) recomputes the vblank control's default for
+	 * whichever mode was passed in. If the last such probe wasn't for
+	 * cur_mode, the vblank control (and thus the real applied frame
+	 * length) is left stuck at a different mode's default instead of
+	 * this one's. Force it back to cur_mode's own default here, right
+	 * before it actually starts streaming, to undo any such staleness.
+	 */
+	__v4l2_ctrl_s_ctrl(gc5035->vblank,
+			   round_up(gc5035->cur_mode->vts_def, 4) -
+			   gc5035->cur_mode->height);
+
 	/* In case these controls are set before streaming */
 	ret = __v4l2_ctrl_handler_setup(&gc5035->ctrl_handler);
 	if (ret)
