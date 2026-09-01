@@ -50,14 +50,16 @@ static const struct ipu_sensor_config ipu_supported_sensors[] = {
 	/* GalaxyCore GC5035 */
 	IPU_SENSOR_CONFIG("GCTI5035", 1, 438000000),
 	/*
-	 * GalaxyCore GC8034 - link frequency is an estimate (computed from
-	 * required throughput, cross-checked against OVTI8856's 720MHz
-	 * entry below for a similar 8MP-class sensor), not extracted from
-	 * the Windows driver (its graph_settings XML carries a 0 placeholder
-	 * here too). Needs empirical verification on real hardware - see
-	 * /home/dries/gc8034-driver/gc8034.c for the full note.
+	 * GalaxyCore GC8034 - 336MHz over 4 lanes, adopted from an
+	 * independent GC8034 Linux port for a different tablet (Acer Gadget
+	 * E10 ETPad Max, gitlab.com/andandr/etpad-max-camera) after our own
+	 * scaled guess (720MHz @ 2 lanes) turned out to carry the same total
+	 * CSI2 bandwidth but the wrong lane count. Must match
+	 * gc8034_link_freqs[] in gc8034.c exactly or probe fails outright
+	 * ("no supported link freq found") - see that file's top comment for
+	 * the full note. Needs empirical verification on real hardware.
 	 */
-	IPU_SENSOR_CONFIG("GCTI8034", 1, 720000000),
+	IPU_SENSOR_CONFIG("GCTI8034", 1, 336000000),
 	/* Himax HM11B1 */
 	IPU_SENSOR_CONFIG("HIMX11B1", 1, 384000000),
 	/* Himax HM2170 */

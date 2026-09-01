@@ -8,17 +8,20 @@
 // binary analysis rather than a public datasheet, since no Linux driver or
 // datasheet exists for this sensor.
 //
-// KNOWN ESTIMATE, NOT EXTRACTED: GC8034_MIPI_FREQ. The Windows driver builds
-// this at runtime from IPU6 graph-compiler / ACPI SSDB data rather than
-// hardcoding it (its graph_settings XML ships pixel_rate_csi="0" as a
-// placeholder), so it could not be recovered by static analysis. Computed
-// here from required throughput (3280x2464 @ 30fps, 10bpp, 2 lanes) using the
-// same blanking-overhead ratio observed in the already-working gc5035
-// register tables, and cross-checked against ipu-bridge.c's own entry for
-// OVTI8856 (a similar 8MP-class sensor supports up to 720000000 Hz) landing
-// very close to the same value. Needs empirical verification on real
-// hardware; if capture fails specifically at the CSI2 PHY-sync stage (not an
-// I2C error), try adjacent standard values instead.
+// GC8034_MIPI_FREQ / GC8034_DATA_LANES: originally a guess (720MHz @ 2 lanes,
+// scaled from gc5035's real numbers, never independently confirmed). Revised
+// after cross-referencing an independent GC8034 Linux port for a different
+// tablet (Acer Gadget E10 ETPad Max, same sensor chip, different board:
+// gitlab.com/andandr/etpad-max-camera) whose driver uses a confirmed
+// 336MHz link frequency over 4 lanes. Total CSI2 bandwidth (link_freq x
+// lanes) is what has to match real sensor throughput, and our old
+// 720MHz x 2 lanes (=1440) landed within ~7% of their 336MHz x 4 lanes
+// (=1344) - so the original guess wasn't far off in aggregate, but the lane
+// count was very likely wrong. Adopted their values here since 4 lanes is
+// also the more plausible physical wiring for an 8MP-class sensor of this
+// generation. Needs empirical verification on real hardware; if capture
+// fails specifically at the CSI2 PHY-sync stage (not an I2C error), revert
+// to 720000000LL / 2 lanes, which is confirmed to work end-to-end.
 
 #include <linux/acpi.h>
 #include <linux/clk.h>
@@ -37,14 +40,13 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
 
-/* Number of lanes supported by this driver (same as the front GC5035, not
- * independently confirmed for GC8034 - verify against dmesg CSI2 errors). */
-#define GC8034_DATA_LANES				2
+/* Number of lanes - see revision note above (was 2, now 4). */
+#define GC8034_DATA_LANES				4
 /* Bits per sample of sensor output */
 #define GC8034_BITS_PER_SAMPLE				10
 
-/* See "KNOWN ESTIMATE, NOT EXTRACTED" note above. */
-#define GC8034_MIPI_FREQ	720000000LL
+/* See revision note above (was 720000000LL). */
+#define GC8034_MIPI_FREQ	336000000LL
 
 /* pixel rate = link frequency * 2 * lanes / BITS_PER_SAMPLE */
 #define GC8034_PIXEL_RATE	(GC8034_MIPI_FREQ * 2LL * GC8034_DATA_LANES / GC8034_BITS_PER_SAMPLE)
